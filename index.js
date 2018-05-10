@@ -21,7 +21,7 @@ require('http')
         if (req.method === 'GET') {
             if (req.url === '/') {
                 res.writeHead(200, {'content-type': 'text/html'});
-                res.end(
+                return res.end(
                     `<form action="/upload" enctype="multipart/form-data" method="post">
                         <input type="file" name="upload" multiple="multiple"><br>
                         <input type="submit" value="Upload">
@@ -42,18 +42,14 @@ require('http')
             });
         }
         if (req.url === '/upload' && req.method === 'POST') {
-            if (req.method === 'POST') {
-                var busboy = new Busboy({ headers: req.headers });
-                busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-                    const encrypt = crypto.createCipher(algorithm, password);
-                    const w = fs.createWriteStream(path.join('./uploads', path.basename(filename)));
-                    file.pipe(encrypt).pipe(w);
-                });
-                busboy.on('finish', function() {
-                    return redirect(res);
-                });
-                return req.pipe(busboy);
-            };
+            var busboy = new Busboy({ headers: req.headers });
+            busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+                const encrypt = crypto.createCipher(algorithm, password);
+                const w = fs.createWriteStream(path.join(uploadsDir, path.basename(filename)));
+                file.pipe(encrypt).pipe(w);
+            });
+            busboy.on('finish', () => redirect(res));
+            return req.pipe(busboy);
         }
     })
     .listen(9999);
