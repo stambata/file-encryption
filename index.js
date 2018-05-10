@@ -79,7 +79,7 @@ require('http')
                 file.pipe(encrypt).pipe(w);
             });
             busboy.on('finish', () => {
-                return redirect(res);
+                return res.end('file successfully uploaded!');
             });
             return req.pipe(busboy);
         }
